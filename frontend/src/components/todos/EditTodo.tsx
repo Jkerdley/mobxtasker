@@ -1,60 +1,61 @@
 import { useState } from "react";
-import { useEditTodoMutation, useGetTodosQuery } from "../../ducks/todo";
 import { ITodo } from "../../types/todo";
+import { todoStore } from "../../store/todoStore";
+import { observer } from "mobx-react-lite";
 
 interface IEditTodoProps {
-    todoId: ITodo["id"];
-    successfulEdit: () => void;
+  todoId: ITodo["id"];
+  successfulEdit: () => void;
 }
 
-export const EditTodo = ({ todoId, successfulEdit }: IEditTodoProps) => {
+export const EditTodo = observer(
+  ({ todoId, successfulEdit }: IEditTodoProps) => {
     const [err, setErr] = useState("");
-    const todoData = useGetTodosQuery();
-    const todos: ITodo[] = todoData.data?.success ? todoData.data.data : [];
+    const todos: ITodo[] = todoStore.todo;
     const currentTodo = todos.find((todo) => todo.id === todoId);
     const [input, setInput] = useState(currentTodo?.title || "");
-    const [editTodo] = useEditTodoMutation();
 
     const onEditTodo: React.FormEventHandler<HTMLFormElement> = async (e) => {
-        e.preventDefault();
+      e.preventDefault();
 
-        if (!currentTodo) {
-            return;
-        }
+      if (!currentTodo) {
+        return;
+      }
 
-        if (input === "") {
-            setErr("Please add valid todo!");
-            return;
-        }
+      if (input === "") {
+        setErr("Please add valid todo!");
+        return;
+      }
 
-        if (input.length > 25) {
-            setErr("Todo must be less then 25 characters!");
-            return;
-        }
+      if (input.length > 25) {
+        setErr("Todo must be less then 25 characters!");
+        return;
+      }
 
-        await editTodo({
-            ...currentTodo,
-            title: input,
-        });
+      await todoStore.update({
+        ...currentTodo,
+        title: input,
+      });
 
-        successfulEdit();
+      successfulEdit();
     };
 
     return (
-        <section className="add__todo">
-            <h1>ToDo App</h1>
-            <form className="add__todo__form" onSubmit={onEditTodo}>
-                <label htmlFor="todo"></label>
-                <input
-                    type="text"
-                    id="todo"
-                    name="todo"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                />
-                <button className="add__todo__btn">Edit Task</button>
-                <p className="errors">{err}</p>
-            </form>
-        </section>
+      <section className="add__todo">
+        <h1>ToDo App</h1>
+        <form className="add__todo__form" onSubmit={onEditTodo}>
+          <label htmlFor="todo"></label>
+          <input
+            type="text"
+            id="todo"
+            name="todo"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+          />
+          <button className="add__todo__btn">Edit Task</button>
+          <p className="errors">{err}</p>
+        </form>
+      </section>
     );
-};
+  }
+);

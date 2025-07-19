@@ -1,16 +1,24 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAppSelector } from "./ducks/hooks";
+import { observer } from "mobx-react-lite";
+import { authStore } from "./store/authStore";
 
 interface IProtectedRoutesProps {
-    auth?: boolean;
+  auth?: boolean;
 }
 
-export const ProtectedRoutes = ({ auth = false }: IProtectedRoutesProps) => {
-    const authenticated = useAppSelector((store) => store.auth.authenticated);
+export const ProtectedRoutes = observer(
+  ({ auth = false }: IProtectedRoutesProps) => {
+    const authenticated = authStore.authenticated;
+    console.log("authenticated", authenticated);
 
     if (authenticated === undefined) {
-        return null;
+      return null;
     }
 
-    return authenticated === auth ? <Outlet /> : <Navigate to={auth ? "/" : "/todos"} />;
-};
+    return authenticated === auth ? (
+      <Outlet />
+    ) : (
+      <Navigate to={auth ? "/" : "/todos"} />
+    );
+  }
+);
